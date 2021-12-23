@@ -1,0 +1,104 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'assets/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/toastify.min.css' %}">
+    <link rel="shortcut icon" href="{% static 'assets/favicon.png' %}">
+    <script src="{% static 'assets/htmx.min.js' %}"></script>
+    <script src="{% static 'assets/toastify-js.js' %}"></script>
+    <title>
+        Django avec HTMX | Requêtes Ajax avec HTML.
+    </title>
+    <style>
+        :root{
+            --warning: #fb6340 !important;
+            --info: #11cdef !important;
+            --error: #f5365c !important;
+            --success: #2dce89 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="polling">
+            <div class="row mt-3" id="todos"
+                hx-get="{% url 'home' %}" hx-trigger="every 2s"
+                hx-swap="#todos">
+                {% for task in tasks %}
+                <div class="card m-3 p-1" style="width:10rem;" id="todo-item">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            {{ task.name }}
+                        </h6>
+                        <p class="text-small text-dark">
+                            <small>
+                                <em>
+                                    Ajouté {{ task.date|naturaltime }}
+                                </em>
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer text-center text-muted">
+                        <button class="btn btn-danger btn-sm"
+                            hx-get="{% url 'delete-task' task.pk %}"
+                            hx-target="#todo-item"
+                            hx-swap="outerHTML">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row text-center mb-5">
+            <div class="col-4"></div>
+            <div class="col-4">
+                <form method="POST"
+                    hx-target="#todos"
+                    hx-swap="beforeend"
+                    hx-post="{% url 'add-task' %}">
+                    {% csrf_token %}
+                    <input type="text" name="name" class="form-control" 
+                        maxlength="255" id="id_name" required>
+                    <input type="submit" 
+                        class="btn btn-sm btn-outline-primary mt-2" 
+                        value="Ajouter une tâche" id="save-button">
+                </form>
+            </div>
+        </div>
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+    <script>
+        Toastify({
+            text: "{{ message }}",
+            duration: 5000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            newWindow: true,
+            style: {
+                background: "var(--{{message.tags}})",
+            },
+            offset: {
+                x: 50,
+                y: 10
+            }
+        }).showToast();
+    </script>
+    {% endfor %}
+    {% endif %}
+    <script src="{% static 'assets/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/bootstrap.min.js' %}"></script>
+    <script src="{% static 'assets/popper.js' %}"></script>
+</body>
+</html>
